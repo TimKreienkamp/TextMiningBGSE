@@ -32,7 +32,8 @@ print title[len(title)-1]
 for i in range (0,len(title)):
     TitleSplit = title[i].split("_")
     year[i]= TitleSplit[1]
-    president[i] = TitleSplit[4]
+    last = len(TitleSplit)
+    president[i] = TitleSplit[last-1]
 
 
 
