@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # import modules
+import re
 import requests
 from bs4 import BeautifulSoup
 
@@ -29,24 +30,31 @@ for page in pages:
     Atitle=soup.find_all('a', {'class':'title'})
     title = [p.get_text() for p in Atitle] # falta poner append
     
-# to get html: a xmlns="" xmlns:innerXml="innerXml" href="./legal-content/EN/TXT/HTML/?uri=OJ:JOL_2011_328_R_0002_01&amp;rid=1    
-# from here to be done !    
-    allA = [link.get("href") for link in allA if link.get("href") != None]
+    # to get html: a xmlns="" xmlns:innerXml="innerXml" href="./legal-content/EN/TXT/HTML/?uri=OJ:JOL_2011_328_R_0002_01&amp;rid=1    
+    # from here to be checked !  
+    allA = soup.find_all('a')
+    
+    all_href = [link.get("href") for link in allA if link.get("href") != None]
+    pat_href=re.compile("/legal-content/EN/TXT/HTML/.") # avoid getting the initial dot
+    url_href=re.findall(pat_href,all_href)
+    
     # explore each of the 10 results of the search
     for doc in docs:
         rank[page*doc]=(page*doc)+1 #ranking of relevance
-        
-        
-    
-# get all <a> tags
-allA = soup.find_all('a')
-# get web
-all_links = [link.get("href") for link in allA if link.get("href") != None]
-press_links = [link for link in all_links if link.startswith('/Media/PressReleases/Show')]
-# get the text
-response2 = requests.get('https://www.flsenate.gov' + press_links[0])
-soup = BeautifulSoup(response2.content)
+        # get the text
+        response = requests.get('http://eur-lex.europa.eu' + url_href[doc])
+        # get text follwoing first <hr> tag, where is the main text
+        pattern_hr=re.compile("<hr.?",re.UNICODE) #defined by tag <hr
+        paragraphs = re.split(pattern_hr, response)
+        paragraphs=paragraphs[1]
+        soup = BeautifulSoup(paragraphs)
+        release = soup.find("p", { 'class' : ['normal', 'ti-art'] }) #CHECK OR CLAUSE
+        doc_text = [p.get_text() for p in release]
+        # unify all the text (TO BE CHECKED)
+        text[page*doc]='\n'.join(doc_text)
+
 
 # Save as data frame
 import pandas as pd
-#data = pd.DataFrame({'title':title,'text':text})
+data = pd.DataFrame({'title':title,'rank':rank,'date':date,'form':form,
+                     'author':author,'text':text})
