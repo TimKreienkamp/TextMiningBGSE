@@ -4,9 +4,10 @@
 import requests
 from bs4 import BeautifulSoup
 import time 
+import re
 
 # list of webs related to 'palestine' at eur-lex.europa.eu
-base_url='http://eur-lex.europa.eu/search.html?qid=1429221052950&text=palestine&scope=EURLEX&type=quick&lang=en'
+base_url='http://eur-lex.europa.eu/search.html?text=palestine&scope=EURLEX&DD_YEAR=2014&qid=1429221052950&type=quick&lang=en&DTS_SUBDOM=LEGISLATION'
 # subsequent pages add '&page=2', '&page=3', etc
 pages=range(1,5,1)
 # docs per page
@@ -33,11 +34,30 @@ for page in pages:
     rows = table.find_all('tr')
     
    #titles are at position 1, metadata is at position 3
-    #WARNING: we are still not taking into account all edge cases here so as is this will not work every time!!!
+   
     for i in range(0, len(rows), 3):
         title.append(rows[i].find('td', {'class':'publicationTitle'}).get_text())
+        #filter out the metadata
         metadata = rows[i+2]
+        # get the left metadata
+        left = metadata.find('td', {'class':'leftMetadata'})
+        # get the direct text access class
+        directtextaccess = left.find('li', {'class': 'directTextAccess'})
+        #get all the links
+        access_links = directtextaccess.find_all('a', href = True)
+        for link in access_links:
+            if '/EN/TXT/HTML/' in link['href']:
+                #now "click" the link
+                print link['href']
+                text_page = requests.get("http://eur-lex.europa.eu/"+link['href'][1:])
+                #soupify
+                text_page_soup = BeautifulSoup(text_page.content)
+                text_page_text = text_page_soup.get_text()
+                text.append(text_page_text)
+            else:
+                text.append('NA')
         
+            
         
         
     
