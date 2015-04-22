@@ -29,12 +29,15 @@ for page in pages:
     Atitle=soup.find_all('a', {'class':'title'})
     title = [p.get_text() for p in Atitle] # falta poner append
     
+
+
+    
 # to get html: a xmlns="" xmlns:innerXml="innerXml" href="./legal-content/EN/TXT/HTML/?uri=OJ:JOL_2011_328_R_0002_01&amp;rid=1    
 # from here to be done !    
-    allA = [link.get("href") for link in allA if link.get("href") != None]
-    # explore each of the 10 results of the search
-    for doc in docs:
-        rank[page*doc]=(page*doc)+1 #ranking of relevance
+allA = [link.get("href") for link in allA if link.get("href") != None]
+# explore each of the 10 results of the search
+for doc in docs:
+    rank[page*doc]=(page*doc)+1 #ranking of relevance
         
         
     

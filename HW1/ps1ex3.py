@@ -13,7 +13,7 @@ paragraphs=[par.strip("*_") for par in paragraphs] # here we get paragraphs with
 # years using regular expression
 pat_year=re.compile("\*\*\*\*\*\*+_[0-9][0-9][0-9][0-9]")
 years=re.findall(pat_year,data)
-years=[year[-4:] for year in years]
+years=[year[-5:] for year in years]
 # Last name of President using regular expression
 pat_pres=re.compile("[A-Z][a-z]+_\*\*\*\*\*")
 pres_name=re.findall(pat_pres,data)
@@ -33,7 +33,7 @@ sliceObj=slice(1,len(sessions),2) #paragraphs are in odd positions
 headers=sessions[sliceObj]
 headers=[text.strip("_") for text in headers]
 # Extract years from headers
-years=[text[0:3] for text in headers]
+years=[text[0:4] for text in headers]
 # Extract last name from headers
 pat_pres=re.compile("[A-Z][a-z]+")
 pres_name=[re.findall(pat_pres,text)[-1] for text in headers] # last word of each header
