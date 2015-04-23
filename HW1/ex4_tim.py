@@ -33,7 +33,7 @@ def numberpages(base_url):
     return(results,pages)
 
 #Funcions that extracts the metadata from the url
- def getdata(base_url): 
+def getdata(base_url): 
     date=[]
     form=[]
     author=[]
@@ -93,13 +93,16 @@ def numberpages(base_url):
  #From the different years the only thing that changes is the end 
     #create a loop so it extracts the files of all the choosen years
     
-years=range(2005,2015,1)  
 base_url='http://eur-lex.europa.eu/search.html?text=palestine&scope=EURLEX&qid=1429221052950&type=quick&lang=en&DTS_SUBDOM=LEGISLATION&DD_YEAR=' 
 
-for i in years:
-    base_url=(base_url+str(years[i]))
+for i in range (2005, 2016,1):
+    base_url=(base_url+str(i))
     Trank,Tauthor,Tdate,Tform,Ttex=getdata(base_url)## how to append in a loop?
-
+    rank.append(Trank)
+    author.append(Tauthor)
+    date.append(Tdate)
+    form.append(Tform)
+    text.append(Ttex)
         
     
     #get titles
