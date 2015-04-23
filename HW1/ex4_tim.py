@@ -83,7 +83,16 @@ def getdata(base_url):
                     text_page = requests.get("http://eur-lex.europa.eu/"+link['href'][1:])
                     #soupify
                     text_page_soup = BeautifulSoup(text_page.content)
-                    text_page_text = text_page_soup.get_text()
+                    # get all text in <p> tags between first <hr> and second <hr> 
+                    # (or stop at the end of </body> which is the parent of <hr>)
+                    par=[]                
+                    for sibling in text_page_soup.hr.next_siblings:
+                        if sibling== text_page_soup.find_all('hr')[1]:
+                            break # stop if next <hr> tag found
+                        else:
+                            if isinstance(sibling,type(text_page_soup.p)):     
+                                par.append(sibling.get_text())
+                    text_page_text=' '.join(par) # join all text found in <p>
                     text.append(text_page_text)
                 else:
                     text.append('NA')
