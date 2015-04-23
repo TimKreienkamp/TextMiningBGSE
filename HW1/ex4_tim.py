@@ -39,7 +39,7 @@ text = []
 time_start = time.clock()
 for page in pages:
     # get next search result page
-    response = requests.get(base_url+'&page'+str(page))
+    response = requests.get(base_url+'&page='+str(page))
     soup = BeautifulSoup(response.content)
     
     #search results are organized in an html table
