@@ -11,6 +11,8 @@ import pandas as pd
 with codecs.open('sou_all.txt','r','utf-8') as file_obj:
 	data=file_obj.read()
  
+
+ 
 #### Second version: Better alternative
 # split into headers and paragraphs directly
 pattern_paragraph=re.compile("\*\*+.?",re.UNICODE) #defined by more than 1 *
@@ -34,8 +36,30 @@ pres_name=[re.findall(pat_pres,text)[-1] for text in headers] # last word of eac
 years = np.asarray(years, dtype = int)
 years.tolist()
 
-# put it in a dataframe
-sou_all_frame = pd.DataFrame({'Year':years, 'Header': headers, 'Body':paragraphs})
+
+# put the data in paragraphs
+i=0
+pattern_speech=re.compile("\n\n+?",re.UNICODE)
+
+yearsPar=[]
+presidentPar=[]
+SpeechPar=[]
+
+
+for speeches in paragraphs:
+    paragraphsSpeech=re.split(pattern_speech, speeches)
+    del paragraphsSpeech[0]
+    del paragraphsSpeech[len(paragraphsSpeech)-1]
+    for numpara in paragraphsSpeech:
+        yearsPar.append(years[i])
+        presidentPar.append(pres_name[i])
+        SpeechPar.append(numpara)
+    i=i+1
+
+#Put it all in the data frame
+sou_all_frame = pd.DataFrame({'Year':yearsPar, 'President':presidentPar, 'Paragraph':SpeechPar})
+    
+
  
 #recall we had to order them chronologically
 sou_all_frame = sou_all_frame.sort("Year", ascending = False)
