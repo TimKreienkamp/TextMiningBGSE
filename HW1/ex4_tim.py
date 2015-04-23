@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 
+## COMMENTS
+
+## -- when we extract the date we can keep it as a string or date
+##    both ways are done in the code (we need to uncomment one to decide what to keep)
+
 # import modules
 import requests
 from bs4 import BeautifulSoup
+import datetime
 import time 
 import re
 
@@ -41,6 +47,16 @@ for page in pages:
         metadata = rows[i+2]
         # get the left metadata
         left = metadata.find('td', {'class':'leftMetadata'})
+        
+        #get the author and date of the paper
+        right=metadata.find('ul', {'class':'metadata'}).find_all('li')
+        author.append(right[0].get_text()[8:])
+        
+        #date.append(datetime.strptime(right[1].get_text()[18:], "%d/%m/%Y" ).date())## in date format
+        date.append(right[1].get_text()[18:])## in string format        
+        form.append(left.find_all('li')[1].get_text()[6:])
+        
+        
         # get the direct text access class
         directtextaccess = left.find('li', {'class': 'directTextAccess'})
         #get all the links
@@ -67,6 +83,4 @@ for page in pages:
      #   title.append(p.get_text())
     #for link in table.find_all('a'):
      #     if link.get('href') == 
-        
-    
 
