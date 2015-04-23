@@ -11,8 +11,8 @@
 import requests
 from bs4 import BeautifulSoup
 import datetime
-import time 
 import re
+import pandas as pd
 
 
 ## Function that returns the number of pages of that search and how many results
@@ -79,24 +79,28 @@ def getdata(base_url):
             for link in access_links:
                 if '/EN/TXT/HTML/' in link['href']:
                     #now "click" the link
-                    print link['href']
+                    #print link['href']
                     text_page = requests.get("http://eur-lex.europa.eu/"+link['href'][1:])
                     #soupify
                     text_page_soup = BeautifulSoup(text_page.content)
                     # get all text in <p> tags between first <hr> and second <hr> 
                     # (or stop at the end of </body> which is the parent of <hr>)
-                    par=[]                
-                    for sibling in text_page_soup.hr.next_siblings:
-                        if sibling== text_page_soup.find_all('hr')[1]:
-                            break # stop if next <hr> tag found
-                        else:
-                            if isinstance(sibling,type(text_page_soup.p)):     
-                                par.append(sibling.get_text())
-                    text_page_text=' '.join(par) # join all text found in <p>
-                    text.append(text_page_text)
-                else:
-                    text.append('NA')
-    return(rank, author, date, form, text)
+                    par=[]        
+                    text_page_body = text_page_soup.find('body')
+                    text.append(text_page_body.get_text())
+                    print len(text)
+                    #for sibling in text_page_soup.hr.next_siblings:
+                    #    if sibling== text_page_soup.find_all('hr')[1]:
+                    #        break # stop if next <hr> tag found
+                    #    else:
+                    #        if isinstance(sibling,type(text_page_soup.p)):     
+                    #            par.append(sibling.get_text())
+                    #            text_page_text=' '.join(par) # join all text found in <p>
+                    #            text.append(text_page_text)
+                    break
+            else:
+                text.append('NA')
+    return(title, rank, author, date, form, text)
     
     
  #From the different years the only thing that changes is the end 
@@ -104,20 +108,26 @@ def getdata(base_url):
     
 base_url='http://eur-lex.europa.eu/search.html?text=palestine&scope=EURLEX&qid=1429221052950&type=quick&lang=en&DTS_SUBDOM=LEGISLATION&DD_YEAR=' 
 
+date_list =[]
+form_list =[]
+author_list =[]
+text_list = []  
+title_list =[]
+rank_list = []
+title_list = []
+   
 for i in range (2005, 2016,1):
-    base_url=(base_url+str(i))
-    Trank,Tauthor,Tdate,Tform,Ttex=getdata(base_url)## how to append in a loop?
-    rank.append(Trank)
-    author.append(Tauthor)
-    date.append(Tdate)
-    form.append(Tform)
-    text.append(Ttex)
-        
     
-    #get titles
-   # Atitle=table.find_all('td', {'class':'publicationTitle'})
-    #for p in Atitle:
-     #   title.append(p.get_text())
-    #for link in table.find_all('a'):
-     #     if link.get('href') == 
+    url=(base_url+str(i))
+    Ttitle, Trank,Tauthor,Tdate,Tform,Ttex=getdata(url)
+    rank_list.extend(Trank)
+    author_list.extend(Tauthor)
+    date_list.extend(Tdate)
+    form_list.extend(Tform)
+    text_list.extend(Ttex)
+    title_list.extend(Ttitle)    
+    
 
+output = pd.DataFrame({'Title':title_list, 'Date': date_list, 'Author':author_list, 'Form':form_list, 'Rank': rank_list, 'Text':text_list})
+
+output.to_csv('output_hw_1_fdez_verdu_kreienkamp.txt', sep = 't')
