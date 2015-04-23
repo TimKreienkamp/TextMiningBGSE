@@ -14,14 +14,23 @@ import re
 
 # list of webs related to 'palestine' at eur-lex.europa.eu
 base_url='http://eur-lex.europa.eu/search.html?text=palestine&scope=EURLEX&DD_YEAR=2014&qid=1429221052950&type=quick&lang=en&DTS_SUBDOM=LEGISLATION'
+# Get the number of results/pages
+response = requests.get(base_url)
+soup = BeautifulSoup(response.content)
+p_results=soup.find('p', {'class':'resultNumber'})
+p_results = p_results.get_text()
+pat_pres=re.compile("\xa0[0-9]+")
+results= re.findall(pat_pres,p_results)[-1]
+results=int(results)
+# Number of pages assuming 10 results per page
+docs_page=10
+npages=results/docs_page +1
 # subsequent pages add '&page=2', '&page=3', etc
-pages=range(1,5,1)
-# docs per page
-docs=range(0,10,1)
+pages=range(1,npages+1,1)
 
 # define text and metadata variables
 title = []
-rank=[]
+rank=range(1,results+1,1)
 date=[]
 form=[]
 author=[]
