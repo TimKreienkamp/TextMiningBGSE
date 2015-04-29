@@ -111,3 +111,30 @@ data = pd.read_table("speech_data_extend.txt",encoding="utf-8")
 docsobj = RawDocs(data.speech[0:100],'stopwords.txt')
 docsobj.doc_term()
 np.save('sample_doc_term.npy',docsobj.doc_term)
+
+# Exercise 2
+
+data = pd.read_table("../HW1/output_hw1ex4_fdez_verdu_kreienkamp.CSV",encoding="utf-8")
+docsobj = RawDocs(data.Text[0:100],'stopwords.txt')
+docsobj.token_clean(1)
+docsobj.stopword_remove()
+#docsobj.stem()
+# If running first time
+docsobj.doc_term()
+np.save('doc_term.npy',docsobj.doc_term)
+docsobj.incidence()
+np.save('incidence.npy',docsobj.incidence)
+# If already runned
+docsobj.doc_term=np.load('doc_term.npy')
+docsobj.incidence=np.load('incidence.npy')
+# Apply dictionaries
+dict1=pd.read_table('Loughran_McDonald.txt',encoding='utf-8')
+dict2=['abandon','refugees']
+docsobj.count(dict1)
+docsobj.count.sum()
+docsobj.count(dict2)
+docsobj.count.sum()
+docsobj.tf_idf(dict1)
+docsobj.tf_idf.sum()
+docsobj.tf_idf(dict2)
+docsobj.tf_idf.sum()
