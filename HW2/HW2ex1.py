@@ -30,8 +30,8 @@ class RawDocs():
         self.tokens = map(wordpunct_tokenize,self.docs)
 
         #   NEW unique terms
-        self.unique = list(set([t for d in self.tokens for t in d]))
-
+        self.unique=list(set([t for d in self.tokens for t in d]))
+        self.unique.sort()
 
     def token_clean(self,length):
 
@@ -70,8 +70,9 @@ class RawDocs():
         def count_terms(doc): #  count of doc tokens
             # first initialize dictionary
             my_dict=dict.fromkeys(self.unique,0)   
-            for i in doc: my_dict[i]+=1             
-            return my_dict.values()
+            for i in doc:  my_dict[i]+=1
+            return [my_dict[key] for key in sorted(my_dict.iterkeys())]
+
         #self.doc_term=count_terms(self.tokens[0],self.unique)
         # Apply to tokens of each doc
         self.doc_term=np.array(map(count_terms,self.tokens))
@@ -104,21 +105,30 @@ class RawDocs():
         self.tf_idf=tf * np.log(self.N/dfv)       
         
         
-# Sample try
+# Sample try with two documents
         
 import pandas as pd
 data = pd.read_table("speech_data_extend.txt",encoding="utf-8")
-docsobj = RawDocs(data.speech[0:100],'stopwords.txt')
+docsobj = RawDocs(data.speech[0:2],'stopwords.txt')
 docsobj.doc_term()
+#check words of first document
+# are the words of the doc present at the unique variable
+check=[docsobj.unique[i] for i in range(0,len(docsobj.unique)) if docsobj.unique[i] in docsobj.tokens[0]]
+# extract the counts from the actual doc tokens
+check2=[docsobj.doc_term[0][i] for i in range(0,len(docsobj.unique)) if docsobj.doc_term[0][i]>0]
+# extract the counted words from .unique
+counts_doc_term=[docsobj.unique[i] for i in range(0,len(docsobj.unique)) if docsobj.doc_term[0][i]>0]
+docsobj.docs[0]
+
 np.save('sample_doc_term.npy',docsobj.doc_term)
 
 # Exercise 2
-
 data = pd.read_table("../HW1/output_hw1ex4_fdez_verdu_kreienkamp.CSV",encoding="utf-8")
+
+#with one dictionary 
 docsobj = RawDocs(data.Text[0:100],'stopwords.txt')
-docsobj.token_clean(1)
+docsobj.token_clean(2)
 docsobj.stopword_remove()
-#docsobj.stem()
 # If running first time
 docsobj.doc_term()
 np.save('doc_term.npy',docsobj.doc_term)
@@ -128,13 +138,21 @@ np.save('incidence.npy',docsobj.incidence)
 docsobj.doc_term=np.load('doc_term.npy')
 docsobj.incidence=np.load('incidence.npy')
 # Apply dictionaries
-dict1=pd.read_table('Loughran_McDonald.txt',encoding='utf-8')
-dict2=['abandon','refugees']
-docsobj.count(dict1)
-docsobj.count.sum()
+dict2=['abandon','refugees','attacks']
 docsobj.count(dict2)
 docsobj.count.sum()
-docsobj.tf_idf(dict1)
-docsobj.tf_idf.sum()
 docsobj.tf_idf(dict2)
+docsobj.tf_idf.sum()
+
+# With another dictionary, run again all, because otherwise detects docsobj.count already exists
+# we should implement something to avoid this but now is the only option
+docsobj = RawDocs(data.Text[0:100],'stopwords.txt')
+docsobj.token_clean(2)
+docsobj.stopword_remove()
+docsobj.doc_term=np.load('doc_term.npy')
+docsobj.incidence=np.load('incidence.npy')
+dict1=pd.read_table('Loughran_McDonald.txt',encoding='utf-8')
+docsobj.count(dict1)
+docsobj.count.sum()
+docsobj.tf_idf(dict1)
 docsobj.tf_idf.sum()
