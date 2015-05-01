@@ -102,7 +102,7 @@ class RawDocs():
         # Number of documents that contain each word   
         dfv=self.incidence[:,index].sum(axis=0) # filter and then sum for all words (cols)
         # Final formula: (term-frequency) * (inverse-document-frequency)
-        self.tf_idf=tf * np.log(self.N/dfv)       
+        self.tf_idf=tf * np.log((self.N/(dfv+0.0001))+0.00001)      
         
         
 # Sample try with two documents
@@ -125,6 +125,11 @@ np.save('sample_doc_term.npy',docsobj.doc_term)
 # Exercise 2
 data = pd.read_table("../HW1/output_hw1ex4_fdez_verdu_kreienkamp.CSV",encoding="utf-8")
 
+#convert text to lowercase
+for i in range(0, len(data.Text)):
+    data.Text[i] = data.Text[i].lower()
+
+
 #with one dictionary 
 docsobj = RawDocs(data.Text[0:100],'stopwords.txt')
 docsobj.token_clean(2)
@@ -144,6 +149,9 @@ docsobj.count.sum()
 docsobj.tf_idf(dict2)
 docsobj.tf_idf.sum()
 
+
+
+
 # With another dictionary, run again all, because otherwise detects docsobj.count already exists
 # we should implement something to avoid this but now is the only option
 docsobj = RawDocs(data.Text[0:100],'stopwords.txt')
@@ -151,7 +159,18 @@ docsobj.token_clean(2)
 docsobj.stopword_remove()
 docsobj.doc_term=np.load('doc_term.npy')
 docsobj.incidence=np.load('incidence.npy')
-dict1=pd.read_table('Loughran_McDonald.txt',encoding='utf-8')
+dict1=pd.read_table('Loughran_McDonald.txt',encoding='utf-8', header = None)
+
+#convert to numpy array
+dict1 = dict1.iloc[:,0].values
+
+# convert to lowercase
+for i in range(0, len(dict1)):
+    dict1[i] = dict1[i].lower()
+
+#convert to list
+dict1 = dict1.tolist()
+
 docsobj.count(dict1)
 docsobj.count.sum()
 docsobj.tf_idf(dict1)
