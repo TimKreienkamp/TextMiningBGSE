@@ -109,6 +109,7 @@ class RawDocs():
         
 import pandas as pd
 data = pd.read_table("speech_data_extend.txt",encoding="utf-8")
+<<<<<<< Updated upstream
 docsobj = RawDocs(data.speech[0:2],'stopwords.txt')
 docsobj.doc_term()
 #check words of first document
@@ -120,6 +121,12 @@ check2=[docsobj.doc_term[0][i] for i in range(0,len(docsobj.unique)) if docsobj.
 counts_doc_term=[docsobj.unique[i] for i in range(0,len(docsobj.unique)) if docsobj.doc_term[0][i]>0]
 docsobj.docs[0]
 
+=======
+docsobj = RawDocs(data.speech[0:100],'stopwords.txt')
+dic=['Mister','president']
+docsobj.doc_term()
+docsobj.count(dic)
+>>>>>>> Stashed changes
 np.save('sample_doc_term.npy',docsobj.doc_term)
 
 # Exercise 2
