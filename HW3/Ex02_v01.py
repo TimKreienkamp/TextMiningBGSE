@@ -32,27 +32,75 @@ for i in range(0, len(data.Text)):
     data.Text[i]  = ''.join(no_digits)
 
 #with one dictionary 
-docsobj = F.RawDocs(data.Text[0:100],'stopwords.txt')
+docsobj = F.RawDocs(data.Text,'stopwords.txt')
 docsobj.token_clean(2)
-#docsobj.stopword_remove()
+docsobj.stopword_remove()
 # If running first time
 docsobj.doc_term()
 docsobj.incidence()
 
 dictionary=docsobj.unique
 
-'''-----------------------------------------------------------------------------
-!!!!Should remove the symbols from the unique!
------------------------------------------------------------------------------'''
- 
-docsobj.tf_idf(dictionary) ##count all the terms in our unique
+#removing the symbols from the dictionary
+words=[]
+for word in dictionary:
+    if word.isalnum() == True:
+        words.append(word)
+
+docsobj.tf_idf(words) ##count all the terms in our unique
 
 X=docsobj.tf_idf
+X=X.T
 
 '''-----------------------------------------------------------------------------
-Value Decomposition (numpy)
+Single Value Decomposition of X (numpy)
 -----------------------------------------------------------------------------'''
 
-##Keep only few hundred of words to approximate the X matrix
+import numpy as np
+
+U, S, V = np.linalg.svd(X, full_matrices=False)
+
+singlevalues=[]
+for ss in S:
+    singlevalues.append(np.power(ss,2))
+
+NormSV =[] 
+for ss in singlevalues:
+    NormSV.append(ss/sum(singlevalues))
+    
+cumSV=[]
+cumSV.append(NormSV[0])
+for i in range(2,99):
+    cumSV.append(sum(NormSV[0:i]))
+
+#See how many we should keep:
+import matplotlib.pyplot as plt
+plt.plot(cumSV)
+plt.ylabel('Sumulative Sum of Squares of Singular Value Vector')
+plt.show()
+
+#Element 17th is the first one to contain 99% of the variance:
+k=17
+U_k = U[:, :k]
+sigma = np.diag(S)[:k,:k]
+V_k = V[:k, :]
+X_k = np.dot(U_k, np.dot(sigma,V_k))
+
+##Now we have the new X_k matrix
+cs=np.zeros((len(X.T),len(X.T)))
 
 
+for i in range(0,len(X)):
+    for j in range(0,len(X)):
+        d1=X[:,i]
+        d2=X[:,j]
+        cs[i,j]=np.dot(d1.T,d1)/(np.linalg.norm((d1), ord=2)*np.linalg.norm((d1), ord=2))
+    
+cs_k=np.zeros((len(X.T),len(X.T)))
+
+for i in range(0,len(X)):
+    for j in range(0,len(X)):
+        d1=X_k[:,i]
+        d2=X_k[:,j]
+        cs_k[i,j]=np.dot(d1.T,d1)/(np.linalg.norm((d1), ord=2)*np.linalg.norm((d1), ord=2))
+    
