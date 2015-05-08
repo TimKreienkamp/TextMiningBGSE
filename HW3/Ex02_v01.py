@@ -4,8 +4,11 @@ Created on Thu May  7 10:23:13 2015
 
 @author: Maria F. & Tim K. & Joan V.
 """
+from __future__ import division
 import function as F #import function 
-import pandas as pd      
+import pandas as pd   
+from sklearn.metrics.pairwise import cosine_similarity
+   
         
 '''-----------------------------------------------------------------------------
         Exercise 1
@@ -50,7 +53,7 @@ for word in dictionary:
 docsobj.tf_idf(words) ##count all the terms in our unique
 
 X=docsobj.tf_idf
-X=X.T
+
 
 '''-----------------------------------------------------------------------------
 Single Value Decomposition of X (numpy)
@@ -76,7 +79,7 @@ for i in range(2,99):
 #See how many we should keep:
 import matplotlib.pyplot as plt
 plt.plot(cumSV)
-plt.ylabel('Sumulative Sum of Squares of Singular Value Vector')
+plt.ylabel('Cumulative Sum of Squares of Singular Value Vector')
 plt.show()
 
 #Element 17th is the first one to contain 99% of the variance:
@@ -86,21 +89,61 @@ sigma = np.diag(S)[:k,:k]
 V_k = V[:k, :]
 X_k = np.dot(U_k, np.dot(sigma,V_k))
 
+
 ##Now we have the new X_k matrix
 cs=np.zeros((len(X.T),len(X.T)))
 
 
-for i in range(0,len(X)):
-    for j in range(0,len(X)):
-        d1=X[:,i]
-        d2=X[:,j]
-        cs[i,j]=np.dot(d1.T,d1)/(np.linalg.norm((d1), ord=2)*np.linalg.norm((d1), ord=2))
+#for i in range(0,len(X.T)):
+#    for j in range(0,len(X.T)):
+#        d1=X[:,i]
+#        d2=X[:,j]
+#        cs[i,j]=np.dot(d1.T,d1)/(np.linalg.norm((d1), ord=2)*np.linalg.norm((d1), ord=2))
     
-cs_k=np.zeros((len(X.T),len(X.T)))
+#cs_k=np.zeros((len(X.T),len(X.T)))
 
-for i in range(0,len(X)):
-    for j in range(0,len(X)):
-        d1=X_k[:,i]
-        d2=X_k[:,j]
-        cs_k[i,j]=np.dot(d1.T,d1)/(np.linalg.norm((d1), ord=2)*np.linalg.norm((d1), ord=2))
+#for i in range(0,len(X.T)):
+#    for j in range(0,len(X.T)):
+#        d1=X_k[:,i]
+#        d2=X_k[:,j]
+#        cs_k[i,j]=np.dot(d1.T,d1)/(np.linalg.norm((d1), ord=2)*np.linalg.norm((d1), ord=2))
+
+cs = np.zeros((171, 171))    
+
+for i in range(0,171):
+    cs[i,:] = cosine_similarity(X[i,], X)
     
+cs_k =  np.zeros((171, 171))
+
+for i in range(0,171):
+    cs_k[i,:] = cosine_similarity(X_k[i,], X_k)
+
+
+result = pd.read_table("../HW2/data_puntuation.csv")
+
+topics=result[['Eco_TD','Legal_TD','Military_TD','Religion_TD']]
+topics=topics.reset_index(drop=True)
+rowmax = topics.max(axis=1)
+maxTopic=np.where(topics.values == rowmax[:,None]) # which is maximum of the 4 categories
+maxTopicInd=maxTopic[1]
+
+
+def similarity(topic1, topic2, topicInd, cs_mat):
+    similarity = 0.0
+    counter = 0.0
+    for i in range(0, len(topicInd)):
+        for j in range(0, len(topicInd)):
+            if topicInd[i] == topic1 and topicInd[j] == topic2 and i != j:
+                similarity += cs_mat[i,j]
+                counter +=1.0
+    similarity = similarity/counter
+    return similarity
+
+noTopics = len(np.unique(maxTopicInd))
+similarity_matrix_1 = np.zeros((noTopics, noTopics))
+
+for i in range(0, noTopics):
+    for j in range(0, noTopics):
+        similarity_matrix_1[i,j] = similarity(i, j, maxTopicInd, cs)
+    
+

@@ -154,3 +154,4 @@ tf_idf = docsobj.tf_idf
 
 svd = np.linalg.svd(tf_idf)
 
+sv = svd[1]
