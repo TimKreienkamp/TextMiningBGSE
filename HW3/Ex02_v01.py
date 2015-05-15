@@ -8,7 +8,7 @@ from __future__ import division
 import function as F #import function 
 import pandas as pd   
 from sklearn.metrics.pairwise import cosine_similarity
-   
+import numpy as np  
         
 '''-----------------------------------------------------------------------------
         Exercise 1
@@ -38,10 +38,10 @@ for i in range(0, len(data.Text)):
 docsobj = F.RawDocs(data.Text,'stopwords.txt')
 docsobj.token_clean(2)
 docsobj.stopword_remove()
+
 # If running first time
 docsobj.doc_term()
 docsobj.incidence()
-
 dictionary=docsobj.unique
 
 #removing the symbols from the dictionary
@@ -53,13 +53,16 @@ for word in dictionary:
 docsobj.tf_idf(words) ##count all the terms in our unique
 
 X=docsobj.tf_idf
+X=X.T
+
+np.savetxt("X_Matrix.csv", X, delimiter="\t")
 
 
 '''-----------------------------------------------------------------------------
 Single Value Decomposition of X (numpy)
 -----------------------------------------------------------------------------'''
 
-import numpy as np
+
 
 U, S, V = np.linalg.svd(X, full_matrices=False)
 
@@ -73,7 +76,7 @@ for ss in singlevalues:
     
 cumSV=[]
 cumSV.append(NormSV[0])
-for i in range(2,99):
+for i in range(2,170):
     cumSV.append(sum(NormSV[0:i]))
 
 #See how many we should keep:
@@ -83,41 +86,22 @@ plt.ylabel('Cumulative Sum of Squares of Singular Value Vector')
 plt.show()
 
 #Element 17th is the first one to contain 99% of the variance:
-k=17
+k=10
 U_k = U[:, :k]
-sigma = np.diag(S)[:k,:k]
+sigma = np.diag(S[:k])
 V_k = V[:k, :]
 X_k = np.dot(U_k, np.dot(sigma,V_k))
 
 
-##Now we have the new X_k matrix
-cs=np.zeros((len(X.T),len(X.T)))
+'''-----------------------------------------------------------------------------
+Cosine Similarity
+-----------------------------------------------------------------------------'''
+cs=cosine_similarity(X.T)
+cs_k=cosine_similarity(X_k.T)
 
-
-#for i in range(0,len(X.T)):
-#    for j in range(0,len(X.T)):
-#        d1=X[:,i]
-#        d2=X[:,j]
-#        cs[i,j]=np.dot(d1.T,d1)/(np.linalg.norm((d1), ord=2)*np.linalg.norm((d1), ord=2))
-    
-#cs_k=np.zeros((len(X.T),len(X.T)))
-
-#for i in range(0,len(X.T)):
-#    for j in range(0,len(X.T)):
-#        d1=X_k[:,i]
-#        d2=X_k[:,j]
-#        cs_k[i,j]=np.dot(d1.T,d1)/(np.linalg.norm((d1), ord=2)*np.linalg.norm((d1), ord=2))
-
-cs = np.zeros((171, 171))    
-
-for i in range(0,171):
-    cs[i,:] = cosine_similarity(X[i,], X)
-    
-cs_k =  np.zeros((171, 171))
-
-for i in range(0,171):
-    cs_k[i,:] = cosine_similarity(X_k[i,], X_k)
-
+'''-----------------------------------------------------------------------------
+Check with results of previous HW
+-----------------------------------------------------------------------------'''
 
 result = pd.read_table("../HW2/data_puntuation.csv")
 
@@ -126,7 +110,22 @@ topics=topics.reset_index(drop=True)
 rowmax = topics.max(axis=1)
 maxTopic=np.where(topics.values == rowmax[:,None]) # which is maximum of the 4 categories
 maxTopicInd=maxTopic[1]
+IndTopic=maxTopic[0]
 
+#None of the documents prefare Religion theme, so we'll study 
+## the other topics.
+
+#Sometimes there are ties, so we will keep only one of the 3 topics,
+#well keep only one
+TopicIndex=[]
+j=0
+for i in range(0,186):
+    if IndTopic[i]==j:
+        TopicIndex.append(maxTopicInd[i])
+        j=j+1
+        
+        
+    
 
 def similarity(topic1, topic2, topicInd, cs_mat):
     similarity = 0.0
@@ -139,11 +138,13 @@ def similarity(topic1, topic2, topicInd, cs_mat):
     similarity = similarity/counter
     return similarity
 
-noTopics = len(np.unique(maxTopicInd))
-similarity_matrix_1 = np.zeros((noTopics, noTopics))
+noTopics = len(np.unique(TopicIndex))
+similarity_matrix_k = np.zeros((noTopics, noTopics))
+
 
 for i in range(0, noTopics):
     for j in range(0, noTopics):
-        similarity_matrix_1[i,j] = similarity(i, j, maxTopicInd, cs)
+        similarity_matrix_k[i,j] = similarity(i, j, TopicIndex, cs_k)
     
+
 
