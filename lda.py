@@ -41,6 +41,7 @@ print docsobj.stems[3]
 docsobj.tf_idf("stems")
 
 plt.plot([x[1] for x in docsobj.tfidf_ranking_stems])
+plt.savefig("tfidf_ranking.png")
 
 docsobj.stopword_remove("stems", 8000)
 
@@ -67,24 +68,21 @@ print ldaobj.topic_seed.shape
 
 ldaobj.sample(0,50, 10)
 
-iterations = np.arange(50, 550, 50)
 
-plot1 = plt.plot(iterations, ldaobj.perplexity())
+plot1 = plt.plot(ldaobj.perplexity())
 plt.ylabel("Perplexity")
-plt.xlabel("Iterations")
+plt.xlabel("Samples")
 plt.title("First Markov Chain")
+plt.savefig("firstchain.png")
 
-time_start = time.clock()
 ldaobj.sample(0,50, 20)
-time_ = time.clock()-time_start
-
-avg_time = time_/1000
 
 
 plot2 = plt.plot(ldaobj.perplexity())
 plt.ylabel("Perplexity")
-plt.xlabel("Iterations")
+plt.xlabel("Samples")
 plt.title("Second Markov Chain")
+plt.savefig("secondchain.png")
 
 
 time_start = time.clock()
@@ -96,14 +94,14 @@ plot3 = plt.plot(ldaobj.perplexity())
 plt.ylabel("Perplexity")
 plt.xlabel("Iterations")
 plt.title("Third Markov Chain")
+plt.savefig("thirdchain.png")
 
 
-ldaobj.samples_keep(20)
+ldaobj.samples_keep(10)
 
 
 print ldaobj.tt.shape
 print ldaobj.dt.shape
-
 
 ldaobj.topic_content(10)
 
@@ -112,3 +110,47 @@ dt = ldaobj.dt_avg()
 tt = ldaobj.tt_avg()
 
 ldaobj.dict_print()
+
+
+###############################
+#Querying on titles
+###############################
+
+
+#first clean the data
+titleobj = topicmodels.RawDocs(data.Title)
+titleobj.token_clean(1)
+titleobj.stem()
+
+queryobj = topicmodels.Query(titleobj.tokens,ldaobj.token_key,ldaobj.tt)
+
+
+queryobj.query(10) 
+
+queryobj.perplexity()
+queryobj.query(30) 
+queryobj.perplexity()
+
+dt_query = queryobj.dt_avg()
+
+topics_documents = np.zeros(171, dtype = int)
+
+topics_titles = np.zeros(171, dtype = int)
+
+for i in range(0, 171):
+    topics_documents[i] = np.argmax(dt[i,])
+    topics_titles[i] = np.argmax(dt_query[i,])
+    
+
+equality_array = np.in1d(topics_documents,topics_titles)
+
+matching_quota = np.mean(equality_array)
+
+
+plt.hist(topics_documents, bins = 15)
+plt.savefig("doctopicshist.png")
+
+plt.hist(topics_titles, bins = 15)
+plt.savefig("titletopicshist.png")
+
+
